@@ -22,6 +22,9 @@ const _HUM_FADE_TIME := 0.15
 const _AMPLITUDE_RAMP_TIME := 0.03
 const _AMPLITUDE_RANGE := 0.15
 const _AMPLITUDE_STEP := _AMPLITUDE_RANGE / (_MIX_RATE * _AMPLITUDE_RAMP_TIME)
+## Per-instance pitch variation, so hums from adjacent lights beat/chorus
+## instead of phase-locking into one louder tone when they overlap.
+const _HUM_FREQUENCY_JITTER := 5.0
 
 var _flicker_timer := 0.0
 var _playback: AudioStreamGeneratorPlayback
@@ -36,6 +39,7 @@ func _ready() -> void:
 	_sync_panel()
 	if Engine.is_editor_hint():
 		return
+	hum_frequency += randf_range(-_HUM_FREQUENCY_JITTER, _HUM_FREQUENCY_JITTER)
 	add_to_group("room_lights")
 	_start_hum()
 	GameManager.game_won.connect(_on_game_won)
