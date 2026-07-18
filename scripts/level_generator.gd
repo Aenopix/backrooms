@@ -10,6 +10,8 @@ const PLAYER_SCENE := preload("res://scenes/Player.tscn")
 @export var grid_size := Vector2i(5, 5)
 @export var randomize_layout := false
 @export var fixed_seed := 1337
+## Fraction of rooms that get a light fixture (roughly 3 lit rooms per 5 in a row).
+@export_range(0.0, 1.0) var light_density := 0.6
 
 var _cells := []
 var _exit_cell := Vector2i.ZERO
@@ -93,16 +95,20 @@ func _farthest_cell(from: Vector2i) -> Vector2i:
 						farthest = n
 	return farthest
 
+const _SPAWN_CELL := Vector2i.ZERO
+
 func _build_rooms() -> void:
-	_exit_cell = _farthest_cell(Vector2i(0, 0))
+	_exit_cell = _farthest_cell(_SPAWN_CELL)
 	for x in grid_size.x:
 		for y in grid_size.y:
 			var room := ROOM_SCENE.instantiate()
 			add_child(room)
 			room.position = Vector3(x * CELL_SIZE, 0, y * CELL_SIZE)
 			var c: Dictionary = _cells[x][y]
-			room.build({"n": not c["n"], "s": not c["s"], "e": not c["e"], "w": not c["w"]})
-			if Vector2i(x, y) == _exit_cell:
+			var cell := Vector2i(x, y)
+			var has_light := cell == _SPAWN_CELL or cell == _exit_cell or _rng.randf() < light_density
+			room.build({"n": not c["n"], "s": not c["s"], "e": not c["e"], "w": not c["w"]}, has_light)
+			if cell == _exit_cell:
 				room.mark_as_exit()
 
 func _spawn_player() -> void:

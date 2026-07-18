@@ -14,14 +14,16 @@ const FLICKER_SCRIPT := preload("res://scripts/flicker_light.gd")
 var is_exit := false
 
 ## open: Dictionary with keys "n"/"s"/"e"/"w" -> true if that side has a doorway.
-func build(open: Dictionary) -> void:
+## has_light: not every room gets a fixture — some sit in the dark between lit ones.
+func build(open: Dictionary, has_light: bool = true) -> void:
 	_build_floor()
 	_build_ceiling()
 	_build_wall("WallNorth", open.get("n", false), Vector3(0, WALL_HEIGHT / 2.0, -CELL_SIZE / 2.0), Vector3(CELL_SIZE, WALL_HEIGHT, WALL_THICKNESS))
 	_build_wall("WallSouth", open.get("s", false), Vector3(0, WALL_HEIGHT / 2.0, CELL_SIZE / 2.0), Vector3(CELL_SIZE, WALL_HEIGHT, WALL_THICKNESS))
 	_build_wall("WallEast", open.get("e", false), Vector3(CELL_SIZE / 2.0, WALL_HEIGHT / 2.0, 0), Vector3(WALL_THICKNESS, WALL_HEIGHT, CELL_SIZE))
 	_build_wall("WallWest", open.get("w", false), Vector3(-CELL_SIZE / 2.0, WALL_HEIGHT / 2.0, 0), Vector3(WALL_THICKNESS, WALL_HEIGHT, CELL_SIZE))
-	_build_light()
+	if has_light:
+		_build_light()
 
 func _build_floor() -> void:
 	var mesh := BoxMesh.new()
@@ -107,6 +109,9 @@ func mark_as_exit() -> void:
 	add_child(area)
 
 	var light := get_node_or_null("FluorescentLight")
+	if not light:
+		_build_light()
+		light = get_node_or_null("FluorescentLight")
 	if light and light.has_method("set_exit_state"):
 		light.set_exit_state()
 
