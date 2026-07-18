@@ -79,7 +79,7 @@ func _process(delta: float) -> void:
 
 func _fill_buffer() -> void:
 	var to_fill := _playback.get_frames_available()
-	var target_amplitude: float = 0.03 * (light_energy / max(base_energy, 0.01)) * _hum_volume
+	var target_amplitude: float = 0.015 * (light_energy / max(base_energy, 0.01)) * _hum_volume
 	for i in to_fill:
 		_current_amplitude = move_toward(_current_amplitude, target_amplitude, _AMPLITUDE_STEP)
 		var sample: float = sin(_phase * TAU) * _current_amplitude
