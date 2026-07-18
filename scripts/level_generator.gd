@@ -8,7 +8,7 @@ const ROOM_SCENE := preload("res://scenes/RoomModule.tscn")
 const PLAYER_SCENE := preload("res://scenes/Player.tscn")
 
 @export var grid_size := Vector2i(5, 5)
-@export var randomize_layout := false
+@export var randomize_layout := true
 @export var fixed_seed := 1337
 ## Fraction of rooms that get a light fixture (roughly 3 lit rooms per 5 in a row).
 @export_range(0.0, 1.0) var light_density := 0.6
