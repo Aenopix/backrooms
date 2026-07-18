@@ -17,6 +17,11 @@ const _PANEL_EMISSION_SCALE := 2.5
 ## How long the hum takes to fade to silence before we stop the player, so the
 ## cutoff doesn't chop the waveform mid-cycle and click.
 const _HUM_FADE_TIME := 0.15
+## How long the hum's amplitude takes to slide to a new target, so flicker-driven
+## jumps (e.g. snapping to light_energy == 0) ramp instead of clicking.
+const _AMPLITUDE_RAMP_TIME := 0.03
+const _AMPLITUDE_RANGE := 0.15
+const _AMPLITUDE_STEP := _AMPLITUDE_RANGE / (_MIX_RATE * _AMPLITUDE_RAMP_TIME)
 
 var _flicker_timer := 0.0
 var _playback: AudioStreamGeneratorPlayback
@@ -24,6 +29,7 @@ var _phase := 0.0
 var _flicker_enabled := true
 var _hum_volume := 1.0
 var _hum_fade_time_left := -1.0
+var _current_amplitude := 0.0
 
 func _ready() -> void:
 	light_energy = base_energy
@@ -69,9 +75,10 @@ func _process(delta: float) -> void:
 
 func _fill_buffer() -> void:
 	var to_fill := _playback.get_frames_available()
-	var amplitude: float = 0.06 * (light_energy / max(base_energy, 0.01)) * _hum_volume
+	var target_amplitude: float = 0.06 * (light_energy / max(base_energy, 0.01)) * _hum_volume
 	for i in to_fill:
-		var sample: float = sin(_phase * TAU) * amplitude
+		_current_amplitude = move_toward(_current_amplitude, target_amplitude, _AMPLITUDE_STEP)
+		var sample: float = sin(_phase * TAU) * _current_amplitude
 		_playback.push_frame(Vector2(sample, sample))
 		_phase = fmod(_phase + hum_frequency / _MIX_RATE, 1.0)
 
