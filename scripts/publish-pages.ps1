@@ -1,15 +1,16 @@
 # Publishes the exported web build in pages/ (a worktree of the gh-pages
 # branch) to GitHub as a single amended commit, so gh-pages never grows.
 #
-# Usage: export the "Web" preset in Godot to pages/index.html first,
-# then run this script from anywhere.
+# Usage: export the "Web" preset in Godot to pages/backrooms.html first,
+# then run this script from anywhere. index.html (a redirect to
+# backrooms.html) already lives in pages/ and isn't touched by exports.
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $pagesDir = Join-Path $repoRoot "pages"
 
-if (-not (Test-Path (Join-Path $pagesDir "index.html"))) {
-    throw "pages/index.html not found. Export the Web preset in Godot first."
+if (-not (Test-Path (Join-Path $pagesDir "backrooms.html"))) {
+    throw "pages/backrooms.html not found. Export the Web preset in Godot first."
 }
 
 Push-Location $pagesDir
