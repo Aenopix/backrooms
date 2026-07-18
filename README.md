@@ -1,123 +1,56 @@
-# BACKROOMS GAME — Design Brief
+# Backrooms
 
-> **Purpose of this file:** context for an AI coding assistant working inside an existing
-> Godot project. It explains the concept, tone, and core mechanics so the AI can generate
-> scenes/scripts consistent with the intended game. Keep everything simple — this is a
-> small, focused prototype, not a full production.
+A short first-person exploration/horror prototype built in Godot 4.7, set in **The Backrooms** — an endless, liminal maze of identical office rooms with yellowed walls, damp carpet, and flickering fluorescent lights. There's no visible way out. The only way is deeper in.
 
----
+Inspired by the original Backrooms creepypasta and *Backrooms* (2026, A24). The goal is quiet dread, not action-horror — disorientation and repetition do the work, not enemies or combat.
 
-## 0. Engine Version
+## Gameplay
 
-**Godot 4.7.1 stable** — use GDScript 2.0 syntax and 4.x node names/APIs
-(e.g. `CharacterBody3D`, not the old `KinematicBody`). Avoid suggesting code or nodes
-from Godot 3.x.
+You spawn in a maze of connected rooms lit only by buzzing, flickering fluorescents. Explore until you find the exit room, marked by a steady green light. Stay away from the dark too long and your sanity drains; standing under a lit fixture lets it recover.
 
----
+- Procedurally generated maze (randomized depth-first carving) — every room is reachable, and the exit is always the room farthest from spawn
+- Flickering lights with a procedurally synthesized hum, no audio files required
+- A sanity meter that drains in the dark and recovers under working lights
+- Fade-to-black win screen with a restart button once you reach the exit
 
-## 1. Concept
+## Controls
 
-A short first-person exploration/horror game set in **"The Backrooms"** — an endless,
-liminal maze of empty office-style rooms with yellowed walls, damp beige carpet, and
-flickering fluorescent lights. There is no visible way out; the only way is deeper in.
+| Action | Key |
+|---|---|
+| Move | `W A S D` |
+| Look | Mouse |
+| Toggle flashlight | `F` |
+| Release / recapture mouse | `Esc` |
 
-**Inspiration:**
-- The original Backrooms creepypasta / "noclip into the wrong reality" internet legend.
-- *Backrooms* (2026), the A24 feature film directed by Kane Parsons ("Kane Pixels"),
-  starring Chiwetel Ejiofor and Renate Reinsve. Premise: a strange doorway appears in the
-  basement of a furniture showroom; after a therapist's patient vanishes into a dimension
-  beyond reality, she enters the Backrooms to find him. The film is praised for its
-  oppressive, claustrophobic "liminal space" atmosphere, uncertainty, and found-footage-style
-  dread rather than jump scares or combat.
+## Running it
 
-**Tone to aim for:** quiet dread, not action-horror. Emptiness and repetition are the
-enemy, not necessarily monsters (an entity chase can be a later addition, not required
-for the first version).
+Requires **Godot 4.7.1**. Clone the repo, open it in the editor, and hit Play — `Main.tscn` is set as the entry scene.
 
----
-
-## 2. Core Pillars (what the AI should prioritize)
-
-1. **Liminal atmosphere** — dim fluorescent lighting, humming ambient sound, mono-yellow
-   color palette, repeating identical rooms.
-2. **Disorientation over combat** — the player should feel lost, not threatened by enemies,
-   at least in this base version.
-3. **Simplicity** — small scope, procedurally repeatable room layout, minimal UI.
-
----
-
-## 3. Minimum Viable Gameplay Loop
-
-1. Player spawns in a small room with a flickering light and a doorway.
-2. Player explores a maze built from repeating/randomized room modules.
-3. Ambient hum + occasional light flicker/sound cues build tension.
-4. Player finds an **exit door** (goal) somewhere in the maze → win state / "You escaped" screen.
-5. Optional stretch goal: a simple **sanity/light meter** that drains in the dark and
-   recovers near working lights, encouraging the player to keep moving.
-
-No combat, no inventory, no complex UI for v1.
-
----
-
-## 4. Suggested Godot Structure
+## Project structure
 
 ```
 res://
 ├── scenes/
-│   ├── Main.tscn            # entry point, loads Level
-│   ├── Player.tscn          # CharacterBody3D, first-person camera + controller
-│   ├── RoomModule.tscn      # a single reusable room "tile" (walls, floor, ceiling, light)
-│   ├── Level.tscn           # arranges RoomModule instances into a maze
+│   ├── Main.tscn          # entry point — instances Level + HUD
+│   ├── Player.tscn        # CharacterBody3D, first-person camera + controller
+│   ├── RoomModule.tscn    # reusable room tile, geometry built procedurally at runtime
+│   ├── Level.tscn         # generates the maze and spawns the player
 │   └── UI/
-│       └── HUD.tscn         # minimal: crosshair, optional sanity bar, win screen
+│       └── HUD.tscn       # crosshair, sanity bar, win screen + restart button
 ├── scripts/
-│   ├── player_controller.gd # WASD + mouse look, footsteps, flashlight toggle
-│   ├── level_generator.gd   # places/randomizes RoomModule grid, keeps track of exit
-│   ├── flicker_light.gd     # random flicker/hum behavior for OmniLight3D
-│   └── game_manager.gd      # win/lose state, sanity meter (optional)
+│   ├── player_controller.gd  # movement, mouse look, flashlight, footsteps, sanity check
+│   ├── level_generator.gd    # DFS maze carving, exit placement, room instancing
+│   ├── room_module.gd        # builds a room's walls/floor/ceiling/light from scratch
+│   ├── flicker_light.gd      # random flicker + procedural hum audio
+│   ├── game_manager.gd       # autoload: sanity state + win signal
+│   └── hud.gd                # win-screen fade, restart handling
 └── assets/
-    ├── materials/            # yellow wall/carpet/ceiling materials
-    └── audio/                 # hum loop, flicker sound, footsteps
+    ├── materials/          # yellow wall / carpet / ceiling materials
+    └── environment/        # dim, fogged world environment
 ```
 
----
+## Notes
 
-## 5. Key Mechanics to Implement First
-
-- **Player Controller:** first-person `CharacterBody3D`, mouse-look camera, WASD movement,
-  no jumping needed (optional), simple footstep sfx on move.
-- **Room Module:** one Blender-simple box room (walls/floor/ceiling), yellow wallpaper
-  material, a buzzing fluorescent `OmniLight3D` with a flicker script, 1–4 doorway
-  openings so modules can connect.
-- **Level Generator:** places `RoomModule` instances on a grid (e.g. 5x5), connects
-  adjacent doorways, marks one module as the **exit room**. Keep it deterministic/simple
-  first (fixed layout), randomize later.
-- **Flicker Light script:** randomizes light energy/on-off over time + plays a hum/buzz
-  sound — this single effect does most of the atmosphere work.
-- **Win Condition:** entering the exit room's trigger `Area3D` shows a "You escaped" UI
-  and stops player input.
-
----
-
-## 6. Explicitly Out of Scope for v1
-
-- Enemies/entities and chase mechanics
-- Inventory or item pickups
-- Multiple game "levels" beyond the Backrooms (no Level 1, Level 2, etc.)
-- Save/load system
-- Complex procedural generation (perlin noise mazes, etc.)
-
-These can be proposed as **future stretch goals** but should not block a working, simple
-first version.
-
----
-
-## 7. Notes for the AI Assistant
-
-- The base Godot project already exists — extend it, don't restructure it unnecessarily.
-- Prefer built-in Godot nodes (`CharacterBody3D`, `OmniLight3D`, `Area3D`, `AudioStreamPlayer3D`)
-  over custom physics or external plugins.
-- Comment scripts concisely: one short comment per function/block explaining *why*, not
-  line-by-line narration.
-- Favor a small number of reusable scenes (e.g. one `RoomModule.tscn`) over many
-  one-off scenes.
+- The maze layout is deterministic by default (fixed seed on `Level`'s `level_generator.gd`) — toggle `randomize_layout` on if you want a new layout every run.
+- Fluorescent lights cast shadows so they don't bleed through walls into neighboring rooms.
+- No combat, inventory, or multiple levels — out of scope for this prototype.
