@@ -1,3 +1,4 @@
+@tool
 extends OmniLight3D
 ## Randomized fluorescent flicker + a procedurally generated low buzz hum.
 ## Attach to an OmniLight3D that already has an AudioStreamPlayer3D child named "HumPlayer".
@@ -19,9 +20,11 @@ var _playback: AudioStreamGeneratorPlayback
 var _phase := 0.0
 
 func _ready() -> void:
-	add_to_group("room_lights")
 	light_energy = base_energy
 	_sync_panel()
+	if Engine.is_editor_hint():
+		return
+	add_to_group("room_lights")
 	_start_hum()
 	GameManager.game_won.connect(_on_game_won)
 
@@ -35,6 +38,8 @@ func _start_hum() -> void:
 	_fill_buffer()
 
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	_flicker_timer -= delta
 	if _flicker_timer <= 0.0:
 		_flicker_timer = randf_range(min_flicker_interval, max_flicker_interval)
@@ -64,14 +69,16 @@ func _sync_panel() -> void:
 ## Every fixture (not just the exit) goes quiet once the player wins.
 func _on_game_won() -> void:
 	set_process(false)
-	hum_player.stop()
+	if hum_player:
+		hum_player.stop()
 
 ## Called by RoomModule when this room is the exit: steady green light, hum stops.
 func set_exit_state() -> void:
 	set_process(false)
 	light_energy = base_energy * 2.0
 	light_color = Color(0.4, 1.0, 0.5)
-	hum_player.stop()
+	if hum_player:
+		hum_player.stop()
 	if panel and panel.material_override:
 		var mat: StandardMaterial3D = panel.material_override
 		mat.albedo_color = Color(0.4, 1.0, 0.5)
