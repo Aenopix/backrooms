@@ -14,6 +14,10 @@ extends OmniLight3D
 
 const _MIX_RATE := 22050.0
 const _PANEL_EMISSION_SCALE := 2.5
+## Caps samples synthesized per frame so a stall (e.g. shader compile) can't
+## snowball: an underrun should mean a brief glitch, not every light's hum
+## racing to refill its whole buffer in one giant blocking frame.
+const _MAX_FILL_PER_CALL := 1024
 
 var _flicker_timer := 0.0
 var _playback: AudioStreamGeneratorPlayback
@@ -52,7 +56,7 @@ func _process(delta: float) -> void:
 		_fill_buffer()
 
 func _fill_buffer() -> void:
-	var to_fill := _playback.get_frames_available()
+	var to_fill: int = mini(_playback.get_frames_available(), _MAX_FILL_PER_CALL)
 	var amplitude: float = 0.06 * (light_energy / max(base_energy, 0.01))
 	for i in to_fill:
 		var sample: float = sin(_phase * TAU) * amplitude
