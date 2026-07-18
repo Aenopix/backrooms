@@ -1,3 +1,4 @@
+@tool
 extends OmniLight3D
 ## Randomized fluorescent flicker + a procedurally generated low buzz hum.
 ## Attach to an OmniLight3D that already has an AudioStreamPlayer3D child named "HumPlayer".
@@ -25,9 +26,11 @@ var _hum_volume := 1.0
 var _hum_fade_time_left := -1.0
 
 func _ready() -> void:
-	add_to_group("room_lights")
 	light_energy = base_energy
 	_sync_panel()
+	if Engine.is_editor_hint():
+		return
+	add_to_group("room_lights")
 	_start_hum()
 	GameManager.game_won.connect(_on_game_won)
 
@@ -41,6 +44,8 @@ func _start_hum() -> void:
 	_fill_buffer()
 
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
 	if _flicker_enabled:
 		_flicker_timer -= delta
 		if _flicker_timer <= 0.0:
@@ -55,7 +60,8 @@ func _process(delta: float) -> void:
 		_hum_volume = clamp(_hum_fade_time_left / _HUM_FADE_TIME, 0.0, 1.0)
 		if _hum_fade_time_left <= 0.0:
 			_playback = null
-			hum_player.stop()
+			if hum_player:
+				hum_player.stop()
 			set_process(false)
 			return
 	if _playback:

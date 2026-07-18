@@ -1,3 +1,4 @@
+@tool
 extends Node3D
 ## One reusable room "tile": floor, ceiling, up to 4 walls, a flickering light.
 ## Geometry is built procedurally so a single RoomModule.tscn can serve every cell.

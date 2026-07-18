@@ -1,3 +1,4 @@
+@tool
 extends Node3D
 ## Builds a maze of RoomModule instances on a grid via randomized depth-first
 ## carving (a perfect maze: every room reachable, no loops), then places the
@@ -12,16 +13,50 @@ const PLAYER_SCENE := preload("res://scenes/Player.tscn")
 @export var fixed_seed := 1337
 ## Fraction of rooms that get a light fixture (roughly 3 lit rooms per 5 in a row).
 @export_range(0.0, 1.0) var light_density := 0.6
+## Check on to build the maze in the editor viewport (fixed_seed, or preview_seed
+## if use_custom_preview_seed is checked). Uncheck to clear it before saving the scene.
+@export var rebuild_preview: bool = false:
+	set(value):
+		rebuild_preview = value
+		if not Engine.is_editor_hint():
+			return
+		if value:
+			_rebuild_preview()
+		else:
+			_clear_preview()
+## Check to reveal preview_seed below and use it for Rebuild Preview instead of fixed_seed.
+@export var use_custom_preview_seed: bool = false:
+	set(value):
+		use_custom_preview_seed = value
+		notify_property_list_changed()
+@export var preview_seed := 1337
 
 var _cells := []
 var _exit_cell := Vector2i.ZERO
 var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		return
 	_rng.seed = randi() if randomize_layout else fixed_seed
 	_generate_maze()
 	_build_rooms()
 	_spawn_player()
+
+func _rebuild_preview() -> void:
+	_clear_preview()
+	_rng.seed = preview_seed if use_custom_preview_seed else fixed_seed
+	_generate_maze()
+	_build_rooms()
+
+func _clear_preview() -> void:
+	for child in get_children():
+		if child.name != "WorldEnvironment":
+			child.free()
+
+func _validate_property(property: Dictionary) -> void:
+	if property.name == "preview_seed" and not use_custom_preview_seed:
+		property.usage &= ~PROPERTY_USAGE_EDITOR
 
 func _generate_maze() -> void:
 	_cells.clear()
