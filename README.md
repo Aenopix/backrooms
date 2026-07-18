@@ -4,6 +4,8 @@ A short first-person exploration/horror prototype built in Godot 4.7, set in **T
 
 Inspired by the original Backrooms creepypasta and *Backrooms* (2026, A24). The goal is quiet dread, not action-horror — disorientation and repetition do the work, not enemies or combat.
 
+The Backrooms as a concept predates the film by years and belongs to no one — A24 and Kane Parsons don't own the idea, just their own adaptation of it.
+
 ## Gameplay
 
 You spawn in a maze of connected rooms lit only by buzzing, flickering fluorescents. Explore until you find the exit room, marked by a steady green light. Stay away from the dark too long and your sanity drains; standing under a lit fixture lets it recover.
