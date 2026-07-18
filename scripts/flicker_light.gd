@@ -7,7 +7,7 @@ extends OmniLight3D
 @export var flicker_intensity := 0.2
 @export var min_flicker_interval := 0.05
 @export var max_flicker_interval := 0.6
-@export var hum_frequency := 90.0
+@export var hum_frequency := 160.0
 
 @onready var hum_player: AudioStreamPlayer3D = $HumPlayer
 @onready var panel: MeshInstance3D = $LightPanel
