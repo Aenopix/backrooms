@@ -16,7 +16,7 @@ if (-not (Test-Path (Join-Path $pagesDir "backrooms.html"))) {
 Push-Location $pagesDir
 try {
     git add -A
-    $status = git status --porcelain --cached
+    $status = git diff --cached --name-only
     if (-not $status) {
         Write-Host "No changes to publish."
         return
