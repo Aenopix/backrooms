@@ -1,16 +1,28 @@
 @tool
 extends OmniLight3D
-## Randomized fluorescent flicker + a procedurally generated low buzz hum.
+## Fluorescent tube behavior: holds steady, then periodically stutters through a
+## quick burst of rapid on/off blinks before settling back down, plus a
+## procedurally generated low buzz hum that tracks brightness.
 ## Attach to an OmniLight3D that already has an AudioStreamPlayer3D child named "HumPlayer".
 
 @export var base_energy := 0.5
+## Brightness jitter applied to each "on" blink within a burst.
 @export var flicker_intensity := 0.2
-@export var min_flicker_interval := 0.05
-@export var max_flicker_interval := 0.6
+## How long the light holds steady between bursts.
+@export var min_steady_time := 4.0
+@export var max_steady_time := 10.0
+## How many on/off blink pairs happen during a single burst.
+@export var min_burst_blinks := 2
+@export var max_burst_blinks := 5
+## How long each individual blink within a burst lasts.
+@export var min_blink_interval := 0.03
+@export var max_blink_interval := 0.09
 @export var hum_frequency := 160.0
 
 @onready var hum_player: AudioStreamPlayer3D = $HumPlayer
 @onready var panel: MeshInstance3D = $LightPanel
+
+enum _FlickerState { STEADY, BURSTING }
 
 const _MIX_RATE := 22050.0
 const _PANEL_EMISSION_SCALE := 2.5
@@ -26,10 +38,12 @@ const _AMPLITUDE_STEP := _AMPLITUDE_RANGE / (_MIX_RATE * _AMPLITUDE_RAMP_TIME)
 ## instead of phase-locking into one louder tone when they overlap.
 const _HUM_FREQUENCY_JITTER := 5.0
 
-var _flicker_timer := 0.0
+var _flicker_enabled := true
+var _flicker_state := _FlickerState.STEADY
+var _state_timer := 0.0
+var _blinks_remaining := 0
 var _playback: AudioStreamGeneratorPlayback
 var _phase := 0.0
-var _flicker_enabled := true
 var _hum_volume := 1.0
 var _hum_fade_time_left := -1.0
 var _current_amplitude := 0.0
@@ -40,6 +54,7 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	hum_frequency += randf_range(-_HUM_FREQUENCY_JITTER, _HUM_FREQUENCY_JITTER)
+	_state_timer = randf_range(min_steady_time, max_steady_time)
 	add_to_group("room_lights")
 	_start_hum()
 	GameManager.game_won.connect(_on_game_won)
@@ -57,14 +72,9 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	if _flicker_enabled:
-		_flicker_timer -= delta
-		if _flicker_timer <= 0.0:
-			_flicker_timer = randf_range(min_flicker_interval, max_flicker_interval)
-			if randf() < 0.15:
-				light_energy = 0.0
-			else:
-				light_energy = base_energy + randf_range(-flicker_intensity, flicker_intensity)
-			_sync_panel()
+		_state_timer -= delta
+		if _state_timer <= 0.0:
+			_advance_flicker_state()
 	if _hum_fade_time_left >= 0.0:
 		_hum_fade_time_left -= delta
 		_hum_volume = clamp(_hum_fade_time_left / _HUM_FADE_TIME, 0.0, 1.0)
@@ -76,6 +86,34 @@ func _process(delta: float) -> void:
 			return
 	if _playback:
 		_fill_buffer()
+
+## Steady tubes occasionally stutter through a burst of rapid blinks, then
+## settle back to steady — closer to how a dying fluorescent tube behaves
+## than a continuous random wobble.
+func _advance_flicker_state() -> void:
+	match _flicker_state:
+		_FlickerState.STEADY:
+			_flicker_state = _FlickerState.BURSTING
+			_blinks_remaining = randi_range(min_burst_blinks, max_burst_blinks) * 2
+			_apply_next_blink()
+		_FlickerState.BURSTING:
+			_blinks_remaining -= 1
+			if _blinks_remaining <= 0:
+				_flicker_state = _FlickerState.STEADY
+				light_energy = base_energy
+				_sync_panel()
+				_state_timer = randf_range(min_steady_time, max_steady_time)
+			else:
+				_apply_next_blink()
+
+## Toggles between dark and lit; called once per blink within a burst.
+func _apply_next_blink() -> void:
+	if light_energy > 0.0:
+		light_energy = 0.0
+	else:
+		light_energy = base_energy + randf_range(-flicker_intensity, flicker_intensity)
+	_sync_panel()
+	_state_timer = randf_range(min_blink_interval, max_blink_interval)
 
 func _fill_buffer() -> void:
 	var to_fill := _playback.get_frames_available()
