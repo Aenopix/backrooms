@@ -23,6 +23,7 @@ func _ready() -> void:
 	light_energy = base_energy
 	_sync_panel()
 	_start_hum()
+	GameManager.game_won.connect(_on_game_won)
 
 func _start_hum() -> void:
 	var gen := AudioStreamGenerator.new()
@@ -59,6 +60,11 @@ func _sync_panel() -> void:
 		return
 	var mat: StandardMaterial3D = panel.material_override
 	mat.emission_energy_multiplier = max(light_energy, 0.0) * _PANEL_EMISSION_SCALE
+
+## Every fixture (not just the exit) goes quiet once the player wins.
+func _on_game_won() -> void:
+	set_process(false)
+	hum_player.stop()
 
 ## Called by RoomModule when this room is the exit: steady green light, hum stops.
 func set_exit_state() -> void:
