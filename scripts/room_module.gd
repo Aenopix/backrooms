@@ -93,6 +93,7 @@ func _build_light() -> void:
 	hum.max_distance = CELL_SIZE * 2.0
 	hum.unit_size = 2.0
 	hum.bus = "Hum"
+	hum.max_db = 0.0
 	light.add_child(hum)
 
 	var panel_mesh := BoxMesh.new()
