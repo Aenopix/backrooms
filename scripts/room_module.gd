@@ -9,7 +9,9 @@ const WALL_THICKNESS := 0.2
 const WALL_MATERIAL := preload("res://assets/materials/wall_yellow.tres")
 const FLOOR_MATERIAL := preload("res://assets/materials/carpet.tres")
 const CEILING_MATERIAL := preload("res://assets/materials/ceiling.tres")
+const LIGHT_PANEL_MATERIAL := preload("res://assets/materials/light_panel.tres")
 const FLICKER_SCRIPT := preload("res://scripts/flicker_light.gd")
+const LIGHT_PANEL_SIZE := 1.0
 
 var is_exit := false
 
@@ -90,6 +92,15 @@ func _build_light() -> void:
 	hum.max_distance = CELL_SIZE * 2.0
 	hum.unit_size = 2.0
 	light.add_child(hum)
+
+	var panel_mesh := BoxMesh.new()
+	panel_mesh.size = Vector3(LIGHT_PANEL_SIZE, 0.05, LIGHT_PANEL_SIZE)
+	var panel := MeshInstance3D.new()
+	panel.name = "LightPanel"
+	panel.mesh = panel_mesh
+	panel.material_override = LIGHT_PANEL_MATERIAL.duplicate()
+	panel.position = Vector3(0, 0.3, 0)
+	light.add_child(panel)
 
 	light.set_script(FLICKER_SCRIPT)
 	add_child(light)
