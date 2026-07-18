@@ -2,8 +2,8 @@ extends OmniLight3D
 ## Randomized fluorescent flicker + a procedurally generated low buzz hum.
 ## Attach to an OmniLight3D that already has an AudioStreamPlayer3D child named "HumPlayer".
 
-@export var base_energy := 1.0
-@export var flicker_intensity := 0.4
+@export var base_energy := 0.5
+@export var flicker_intensity := 0.2
 @export var min_flicker_interval := 0.05
 @export var max_flicker_interval := 0.6
 @export var hum_frequency := 90.0
@@ -52,6 +52,6 @@ func _fill_buffer() -> void:
 ## Called by RoomModule when this room is the exit: steady green light, hum stops.
 func set_exit_state() -> void:
 	set_process(false)
-	light_energy = base_energy * 1.5
+	light_energy = base_energy * 2.0
 	light_color = Color(0.4, 1.0, 0.5)
 	hum_player.stop()

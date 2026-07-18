@@ -79,7 +79,7 @@ func _build_light() -> void:
 	var light := OmniLight3D.new()
 	light.name = "FluorescentLight"
 	light.position = Vector3(0, WALL_HEIGHT - 0.3, 0)
-	light.omni_range = CELL_SIZE * 1.1
+	light.omni_range = CELL_SIZE * 0.9
 	light.light_color = Color(1.0, 0.96, 0.78)
 	light.shadow_enabled = true
 

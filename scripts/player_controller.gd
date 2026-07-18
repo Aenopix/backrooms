@@ -69,6 +69,6 @@ func _process(delta: float) -> void:
 ## Sanity recovers near a fluorescent light that is currently bright, drains otherwise.
 func _is_lit() -> bool:
 	for light in get_tree().get_nodes_in_group("room_lights"):
-		if light is OmniLight3D and global_position.distance_to(light.global_position) < light.omni_range and light.light_energy > 0.5:
+		if light is OmniLight3D and global_position.distance_to(light.global_position) < light.omni_range and light.light_energy > 0.4:
 			return true
 	return false
