@@ -2,8 +2,8 @@ extends OmniLight3D
 ## Randomized fluorescent flicker + a procedurally generated low buzz hum.
 ## Attach to an OmniLight3D that already has an AudioStreamPlayer3D child named "HumPlayer".
 
-@export var base_energy := 2.0
-@export var flicker_intensity := 0.6
+@export var base_energy := 1.0
+@export var flicker_intensity := 0.4
 @export var min_flicker_interval := 0.05
 @export var max_flicker_interval := 0.6
 @export var hum_frequency := 90.0
